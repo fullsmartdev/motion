@@ -39,12 +39,6 @@ if $?.exitstatus == 2
   puts ''
 end
 
-begin
-  require 'bundler/setup'
-  Bundler.require
-rescue LoadError
-end
-
 desc "Build the project, then run the simulator"
 task :default => :simulator
 
@@ -67,7 +61,7 @@ end
 desc "Run the simulator"
 task :simulator => ['build:simulator'] do
   app = App.config.app_bundle('iPhoneSimulator')
-  target = App.config.deployment_target
+  target = App.config.sdk_version
 
   # Cleanup the simulator application sandbox, to avoid having old resource files there.
   if ENV['clean']
