@@ -77,7 +77,7 @@ module Motion; module Project
       end
 
       def create(app_name)
-        unless app_name.match(/^[\w\s-]+$/)
+        unless app_name.match(/^[a-zA-Z\d\s]+$/)
           fail "Invalid app name"
         end
     
@@ -99,7 +99,6 @@ module Motion; module Project
           App.log 'Create', File.join(app_name, 'Rakefile')
           File.open('Rakefile', 'w') do |io|
             io.puts <<EOS
-# -*- coding: utf-8 -*-
 $:.unshift(\"#{$motion_libdir}\")
 require 'motion/project'
 
