@@ -50,8 +50,9 @@ module Motion; module Project
     variable :files, :xcode_dir, :sdk_version, :deployment_target, :frameworks,
       :libs, :delegate_class, :name, :build_dir, :resources_dir, :specs_dir,
       :identifier, :codesign_certificate, :provisioning_profile,
-      :device_family, :interface_orientations, :version, :icons,
-      :prerendered_icon, :seed_id, :entitlements, :fonts
+      :device_family, :interface_orientations, :version, :short_version, :icons,
+      :prerendered_icon, :background_modes, :seed_id, :entitlements, :fonts, 
+      :status_bar_style, :url_types
 
     attr_accessor :spec_mode
 
@@ -70,6 +71,10 @@ module Motion; module Project
       @bundle_signature = '????'
       @interface_orientations = [:portrait, :landscape_left, :landscape_right]
       @version = '1.0'
+      @short_version = '1'
+      @status_bar_style = 'UIStatusBarStyleDefault'
+      @url_types = []
+      @background_modes = []
       @icons = []
       @prerendered_icon = false
       @vendor_projects = []
@@ -469,7 +474,7 @@ EOS
         'CFBundleInfoDictionaryVersion' => '6.0',
         'CFBundlePackageType' => 'APPL',
         'CFBundleResourceSpecification' => 'ResourceRules.plist',
-        'CFBundleShortVersionString' => @version,
+        'CFBundleShortVersionString' => @short_version,
         'CFBundleSignature' => @bundle_signature,
         'CFBundleSupportedPlatforms' => ['iPhoneOS'],
         'CFBundleVersion' => @version,
@@ -480,10 +485,12 @@ EOS
             'UIPrerenderedIcon' => prerendered_icon,
           }
         },
+        'CFBundleURLTypes' => url_types,
         'UIAppFonts' => fonts,
         'UIDeviceFamily' => device_family_ints.map { |x| x.to_s },
         'UISupportedInterfaceOrientations' => interface_orientations_consts,
-        'UIStatusBarStyle' => 'UIStatusBarStyleDefault',
+        'UIStatusBarStyle' => @status_bar_style,
+        'UIBackgroundModes' => @background_modes,
         'DTXcode' => '0431',
         'DTSDKName' => 'iphoneos5.0',
         'DTSDKBuild' => '9A334',
@@ -592,7 +599,8 @@ EOS
       a = sdk_version.scan(/(\d+)\.(\d+)/)[0]
       sdk_version_headers = ((a[0].to_i * 10000) + (a[1].to_i * 100)).to_s
       extra_flags = OSX_VERSION >= 10.7 ? '--no-64-bit' : ''
-      sh "RUBYOPT='' /usr/bin/gen_bridge_metadata --format complete #{extra_flags} --cflags \"-isysroot #{sdk_path} -miphoneos-version-min=#{sdk_version} -D__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__=#{sdk_version_headers} -I. #{includes.join(' ')}\" #{headers.join(' ')} -o \"#{bs_file}\""
+
+      sh "/usr/bin/gen_bridge_metadata --format complete #{extra_flags} --cflags \"-isysroot #{sdk_path} -miphoneos-version-min=#{sdk_version} -D__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__=#{sdk_version_headers} -I. #{includes.join(' ')}\" #{headers.join(' ')} -o \"#{bs_file}\""
     end
   end
 end; end
