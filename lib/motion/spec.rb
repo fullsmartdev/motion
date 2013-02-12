@@ -413,10 +413,10 @@ module Bacon
 
         @error = if e.kind_of? Error
           Counter[e.count_as] += 1
-          "#{e.count_as.to_s.upcase} - #{e}"
+          e.count_as.to_s.upcase
         else
           Counter[:errors] += 1
-          "ERROR: #{e.class} - #{e}"
+          "ERROR: #{e.class}"
         end
       end
     end
