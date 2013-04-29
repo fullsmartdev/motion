@@ -370,6 +370,7 @@ EOS
         end
         dest_path = File.join(app_resources_dir, res)
         if !File.exist?(dest_path) or File.mtime(res_path) > File.mtime(dest_path)
+          FileUtils.mkdir_p(File.dirname(dest_path))
           App.info 'Copy', res_path
           FileUtils.cp_r(res_path, dest_path)
         end
