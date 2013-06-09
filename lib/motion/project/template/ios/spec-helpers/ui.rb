@@ -213,15 +213,10 @@ module Bacon
       attr_accessor :controller
 
       def controller
-        @controller ||= begin
-          c = nil
-          if @options[:id]
-            c = storyboard.instantiateViewControllerWithIdentifier(@options[:id])
-          else
-            c = @controller_class.alloc.init
-          end
-          send(@options[:after_created], c) if @options[:after_created]
-          c
+        @controller ||= if @options[:id]
+          storyboard.instantiateViewControllerWithIdentifier(@options[:id])
+        else
+          @controller_class.alloc.init
         end
       end
 

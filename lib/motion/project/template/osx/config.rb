@@ -29,18 +29,28 @@ module Motion; module Project;
   class OSXConfig < XcodeConfig
     register :osx
 
-    variable :icon, :copyright
+    variable :icon, :copyright, :embedded_frameworks
 
     def initialize(project_dir, build_mode)
       super
       @copyright = "Copyright © #{Time.now.year} #{`whoami`.strip}. All rights reserved."
       @icon = ''
       @frameworks = ['AppKit', 'Foundation', 'CoreGraphics']
+      @embedded_frameworks = []
     end
 
     def platforms; ['MacOSX']; end
     def local_platform; 'MacOSX'; end
     def deploy_platform; 'MacOSX'; end
+
+    def validate
+      # Embedded frameworks.
+      if !(embedded_frameworks.is_a?(Array) and embedded_frameworks.all? { |x| File.exist?(x) and File.extname(x) == '.framework' })
+        App.fail "app.embedded_frameworks should be an array of framework paths" 
+      end
+
+      super
+    end
 
     def archs
       archs = super
@@ -70,6 +80,11 @@ module Motion; module Project;
       super('Mac')
     end
 
+    def entitlements_data
+      dict = entitlements
+      Motion::PropertyList.to_s(dict)
+    end
+
     def common_flags(platform)
       super + " -mmacosx-version-min=#{deployment_target}"
     end
@@ -94,7 +109,8 @@ module Motion; module Project;
       Motion::PropertyList.to_s({
         'NSHumanReadableCopyright' => copyright,
         'NSPrincipalClass' => 'NSApplication',
-        'CFBundleIconFile' => (icon or '')
+        'CFBundleIconFile' => (icon or ''),
+        'LSMinimumSystemVersion' => deployment_target
       }.merge(generic_info_plist).merge(dt_info_plist).merge(info_plist))
     end
  

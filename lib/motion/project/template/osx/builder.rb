@@ -31,16 +31,23 @@ module Motion; module Project
       archive = config.archive
       if !File.exist?(archive) or File.mtime(app_bundle) > File.mtime(archive)
         App.info 'Create', archive
-        sh "/usr/bin/productbuild --quiet --component \"#{app_bundle}\" /Applications \"#{archive}\""
+        codesign = begin
+          if config.distribution_mode
+            "--sign \"" + config.codesign_certificate.sub(/Application/, "Installer") + "\""
+          end
+        end || ""
+        sh "/usr/bin/productbuild --quiet --component \"#{app_bundle}\" /Applications \"#{archive}\" #{codesign}"
       end
     end
 
     def codesign(config, platform)
       app_bundle = config.app_bundle_raw('MacOSX')
+      entitlements = File.join(config.versionized_build_dir(platform), "Entitlements.plist")
       if File.mtime(config.project_file) > File.mtime(app_bundle) \
           or !system("/usr/bin/codesign --verify \"#{app_bundle}\" >& /dev/null")
         App.info 'Codesign', app_bundle
-        sh "/usr/bin/codesign --force --sign \"#{config.codesign_certificate}\" \"#{app_bundle}\""
+        File.open(entitlements, 'w') { |io| io.write(config.entitlements_data) }
+        sh "/usr/bin/codesign --force --sign \"#{config.codesign_certificate}\" --entitlements \"#{entitlements}\" \"#{app_bundle}\""
       end
     end
   end

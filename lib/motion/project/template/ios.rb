@@ -54,6 +54,21 @@ task :simulator => ['build:simulator'] do
   app = App.config.app_bundle('iPhoneSimulator')
   target = ENV['target'] || App.config.sdk_version
 
+  if ENV['TMUX']
+    tmux_default_command = `tmux show-options -g default-command`.strip
+    unless tmux_default_command.include?("reattach-to-user-namespace")
+      App.warn(<<END
+
+    It appears you are using tmux without 'reattach-to-user-namespace', the simulator might not work properly. You can either disable tmux or run the following commands:
+
+      $ brew install reattach-to-user-namespace
+      $ echo 'set-option -g default-command "reattach-to-user-namespace -l $SHELL"' >> ~/.tmux.conf
+
+END
+      )
+    end
+  end
+
   # Cleanup the simulator application sandbox, to avoid having old resource files there.
   if ENV['clean']
     sim_apps = File.expand_path("~/Library/Application Support/iPhone Simulator/#{target}/Applications")
@@ -88,9 +103,10 @@ task :simulator => ['build:simulator'] do
   env << ' SIM_SPEC_MODE=1' if App.config.spec_mode
   sim = File.join(App.config.bindir, 'ios/sim')
   debug = (ENV['debug'] ? 1 : (App.config.spec_mode ? '0' : '2'))
+  app_args = (ENV['args'] or '')
   App.info 'Simulate', app
   at_exit { system("stty echo") } if $stdout.tty? # Just in case the simulator launcher crashes and leaves the terminal without echo.
-  sh "#{env} #{sim} #{debug} #{family_int} #{target} \"#{xcode}\" \"#{app}\""
+  sh "#{env} #{sim} #{debug} #{family_int} #{target} \"#{xcode}\" \"#{app}\" #{app_args}"
 end
 
 desc "Create an .ipa archive"
@@ -136,18 +152,6 @@ task :device => :archive do
   deploy = File.join(App.config.bindir, 'ios/deploy')
   flags = Rake.application.options.trace ? '-d' : ''
   sh "#{env} #{deploy} #{flags} \"#{device_id}\" \"#{App.config.archive}\""
-end
-
-desc "Generate ctags"
-task :ctags do
-  tags_file = 'tags'
-  config = App.config
-  if !File.exist?(tags_file) or File.mtime(config.project_file) > File.mtime(tags_file)
-    bs_files = config.bridgesupport_files + config.vendor_projects.map { |p| Dir.glob(File.join(p.path, '*.bridgesupport')) }.flatten
-    ctags = File.join(config.bindir, 'ctags')
-    config = File.join(config.motiondir, 'data', 'bridgesupport-ctags.cfg')
-    sh "#{ctags} --options=\"#{config}\" #{bs_files.map { |x| '"' + x + '"' }.join(' ')}"
-  end
 end
 
 desc "Create a .a static library"
