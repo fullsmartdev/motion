@@ -46,9 +46,6 @@ namespace :build do
   end
 end
 
-desc "Build everything"
-task :build => ['build:development', 'build:release']
-
 desc "Run the project"
 task :run => 'build:development' do
   exec = App.config.app_bundle_executable('MacOSX')
@@ -57,10 +54,9 @@ task :run => 'build:development' do
   sim = File.join(App.config.bindir, 'osx/sim')
   debug = (ENV['debug'] ? 1 : (App.config.spec_mode ? '0' : '2'))
   target = App.config.sdk_version
-  app_args = (ENV['args'] or '')
   App.info 'Run', exec
   at_exit { system("stty echo") } if $stdout.tty? # Just in case the process crashes and leaves the terminal without echo.
-  sh "#{env} #{sim} #{debug} #{target} \"#{exec}\" #{app_args}"
+  sh "#{env} #{sim} #{debug} #{target} \"#{exec}\""
 end
 
 desc "Run the test/spec suite"
@@ -81,9 +77,4 @@ namespace :archive do
     App.config.distribution_mode = true
     Rake::Task['archive'].invoke
   end
-end
-
-desc "Create a .a static library"
-task :static do
-  App.build('MacOSX', :static => true)
 end
