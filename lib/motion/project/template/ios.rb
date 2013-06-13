@@ -49,8 +49,13 @@ namespace :build do
   end
 end
 
+
+desc "Build and run the simulator"
+task :simulator => ['build:simulator', 'sim'] do
+end
+
 desc "Run the simulator"
-task :simulator => ['build:simulator'] do
+task :sim do
   app = App.config.app_bundle('iPhoneSimulator')
   target = ENV['target'] || App.config.sdk_version
 
@@ -101,6 +106,7 @@ END
   xcode = App.config.xcode_dir
   env = "DYLD_FRAMEWORK_PATH=\"#{xcode}/../Frameworks\":\"#{xcode}/../OtherFrameworks\""
   env << ' SIM_SPEC_MODE=1' if App.config.spec_mode
+  env << ' NSZombieEnabled=YES' if ENV['zombie']
   sim = File.join(App.config.bindir, 'ios/sim')
   debug = (ENV['debug'] ? 1 : (App.config.spec_mode ? '0' : '2'))
   app_args = (ENV['args'] or '')
@@ -118,7 +124,7 @@ namespace :archive do
   desc "Create an .ipa archive for distribution (AppStore)"
   task :distribution do
     App.config_without_setup.build_mode = :release
-    App.config.distribution_mode = true
+    App.config_without_setup.distribution_mode = true
     Rake::Task["archive"].invoke
   end
 end
@@ -129,13 +135,13 @@ task :spec => ['spec:simulator']
 namespace :spec do
   desc "Run the test/spec suite on the simulator"
   task :simulator do
-    App.config.spec_mode = true
+    App.config_without_setup.spec_mode = true
     Rake::Task["simulator"].invoke
   end
 
   desc "Run the test/spec suite on the device"
   task :device do
-    App.config.spec_mode = true
+    App.config_without_setup.spec_mode = true
     ENV['debug'] ||= '1'
     Rake::Task["device"].invoke
   end
