@@ -49,13 +49,11 @@ namespace :build do
   end
 end
 
-
-desc "Build and run the simulator"
-task :simulator => ['build:simulator', 'sim'] do
-end
-
 desc "Run the simulator"
-task :sim do
+task :simulator do
+  unless ENV["skip_build"]
+    Rake::Task["build:simulator"].invoke
+  end
   app = App.config.app_bundle('iPhoneSimulator')
   target = ENV['target'] || App.config.sdk_version
 
