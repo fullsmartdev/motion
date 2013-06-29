@@ -136,21 +136,11 @@ module Motion; module Project;
     end
 
     def common_flags(platform)
-      simulator_version = begin
-        if platform == "iPhoneSimulator"
-          m = deployment_target.match(/(\d+)/)
-          if m[0].to_i >= 7
-            " -mios-simulator-version-min=#{deployment_target}"
-          else
-            " -miphoneos-version-min=#{deployment_target}"
-          end
-        end
-      end || ""
-      super + simulator_version
+      super + " -miphoneos-version-min=#{deployment_target}"
     end
 
     def cflags(platform, cplusplus)
-      super + " -g -fobjc-legacy-dispatch -fobjc-abi-version=2"
+      super + " -fobjc-legacy-dispatch -fobjc-abi-version=2"
     end
 
     def ldflags(platform)
@@ -418,6 +408,7 @@ EOS
       main_txt << <<EOS
         RubyMotionInit(argc, argv);
 EOS
+      main_txt << define_global_env_txt
       main_txt << <<EOS
         retval = UIApplicationMain(argc, argv, nil, @"#{delegate_class}");
         rb_exit(retval);
