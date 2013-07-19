@@ -138,8 +138,8 @@ module Motion; module Project;
     def common_flags(platform)
       simulator_version = begin
         if platform == "iPhoneSimulator"
-          m = deployment_target.match(/(\d+)/)
-          if m[0].to_i >= 7
+          ver = xcode_version[0].match(/(\d+)/)
+          if ver[0].to_i >= 5
             " -mios-simulator-version-min=#{deployment_target}"
           else
             " -miphoneos-version-min=#{deployment_target}"
@@ -439,19 +439,14 @@ main(int argc, char **argv)
 {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     int retval = 0;
-    try {
 EOS
-      main_txt << "[SpecLauncher launcher];\n" if spec_mode
-      main_txt << <<EOS
-        RubyMotionInit(argc, argv);
+    main_txt << "[SpecLauncher launcher];\n" if spec_mode
+    main_txt << <<EOS
+    RubyMotionInit(argc, argv);
 EOS
-      main_txt << <<EOS
-        retval = UIApplicationMain(argc, argv, nil, @"#{delegate_class}");
-        rb_exit(retval);
-    }
-    catch (...) {
-	rb_rb2oc_exc_handler();
-    }
+    main_txt << <<EOS
+    retval = UIApplicationMain(argc, argv, nil, @"#{delegate_class}");
+    rb_exit(retval);
     [pool release];
     return retval;
 }
