@@ -252,7 +252,6 @@ module Motion; module Project;
         when :default then 'UIStatusBarStyleDefault'
         when :black_translucent then 'UIStatusBarStyleBlackTranslucent'
         when :black_opaque then 'UIStatusBarStyleBlackOpaque'
-        when :light_content then 'UIStatusBarStyleLightContent'
         else
           App.fail "Unknown status_bar_style value: `#{@status_bar_style}'"
       end
