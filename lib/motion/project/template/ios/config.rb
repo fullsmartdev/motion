@@ -137,15 +137,15 @@ module Motion; module Project;
 
     def common_flags(platform)
       simulator_version = begin
-        flag = " -miphoneos-version-min=#{deployment_target}"
         if platform == "iPhoneSimulator"
-          ver = xcode_version[0].match(/(\d+)/)
-          if ver[0].to_i >= 5
-            flag = " -mios-simulator-version-min=#{deployment_target}"
+          m = deployment_target.match(/(\d+)/)
+          if m[0].to_i >= 7
+            " -mios-simulator-version-min=#{deployment_target}"
+          else
+            " -miphoneos-version-min=#{deployment_target}"
           end
         end
-        flag
-      end
+      end || ""
       super + simulator_version
     end
 
@@ -252,7 +252,6 @@ module Motion; module Project;
         when :default then 'UIStatusBarStyleDefault'
         when :black_translucent then 'UIStatusBarStyleBlackTranslucent'
         when :black_opaque then 'UIStatusBarStyleBlackOpaque'
-        when :light_content then 'UIStatusBarStyleLightContent'
         else
           App.fail "Unknown status_bar_style value: `#{@status_bar_style}'"
       end
@@ -440,14 +439,19 @@ main(int argc, char **argv)
 {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     int retval = 0;
+    try {
 EOS
-    main_txt << "[SpecLauncher launcher];\n" if spec_mode
-    main_txt << <<EOS
-    RubyMotionInit(argc, argv);
+      main_txt << "[SpecLauncher launcher];\n" if spec_mode
+      main_txt << <<EOS
+        RubyMotionInit(argc, argv);
 EOS
-    main_txt << <<EOS
-    retval = UIApplicationMain(argc, argv, nil, @"#{delegate_class}");
-    rb_exit(retval);
+      main_txt << <<EOS
+        retval = UIApplicationMain(argc, argv, nil, @"#{delegate_class}");
+        rb_exit(retval);
+    }
+    catch (...) {
+	rb_rb2oc_exc_handler();
+    }
     [pool release];
     return retval;
 }

@@ -1,4 +1,4 @@
-# Copyright (c) 2012, HipByte SPRL and contributors
+# Copyright (c) 2013, HipByte SPRL and contributors
 # All rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
@@ -21,6 +21,19 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-module Motion
-  Version = "2.4"
-end
+module Motion; module Project
+  class ChangelogCommand < Command
+    self.name = 'changelog'
+    self.help = 'View the changelog'
+
+    def run(args)
+      unless args.empty?
+        die "Usage: motion changelog"
+      end
+
+      pager = (ENV['PAGER'] or '/usr/bin/less')
+      system("#{pager} /Library/RubyMotion/NEWS")
+    end
+  end
+end; end
+
