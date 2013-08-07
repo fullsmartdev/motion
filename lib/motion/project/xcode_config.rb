@@ -36,7 +36,7 @@ module Motion; module Project;
       @framework_search_paths = []
       @libs = []
       @bundle_signature = '????'
-      @short_version = '1'
+      @short_version = nil
       @vendor_projects = []
       @entitlements = {}
       @delegate_class = 'AppDelegate'
@@ -104,7 +104,7 @@ EOS
       end
 
       # deployment_target
-      if deployment_target > sdk_version
+      if deployment_target.to_f > sdk_version.to_f
         App.fail "Deployment target `#{deployment_target}' must be equal or lesser than SDK version `#{sdk_version}'"
       end
       unless File.exist?(datadir)
@@ -269,7 +269,7 @@ EOS
         'CFBundleExecutable' => @name, 
         'CFBundleInfoDictionaryVersion' => '6.0',
         'CFBundlePackageType' => 'APPL',
-        'CFBundleShortVersionString' => @short_version,
+        'CFBundleShortVersionString' => (@short_version || @version),
         'CFBundleSignature' => @bundle_signature,
         'CFBundleVersion' => @version
       }

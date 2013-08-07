@@ -69,3 +69,13 @@ task :ctags do
     sh "#{ctags} --options=\"#{config}\" #{bs_files.map { |x| '"' + x + '"' }.join(' ')}"
   end
 end
+
+desc "Open the latest crash report generated for the app"
+task :crashlog do
+  logs = Dir.glob(File.join(File.expand_path("~/Library/Logs/DiagnosticReports/"), "#{App.config.name}_*"))
+  if logs.empty?
+    $stderr.puts "Unable to find any crash report file"
+  else
+    sh "open -a Console \"#{logs.last}\""
+  end
+end
