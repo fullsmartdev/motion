@@ -586,8 +586,6 @@ module Bacon
     def raise?(*args, &block); block.raise?(*args); end
     def throw?(*args, &block); block.throw?(*args); end
     def change?(*args, &block); block.change?(*args); end
-
-    alias_method :context, :describe
   end
 end
 
@@ -645,8 +643,6 @@ module Kernel
   private
   def describe(*args, &block) Bacon::Context.new(args.join(' '), &block)  end
   def shared(name, &block)    Bacon::Shared[name] = block                 end
-
-  alias_method :context, :describe
 end
 
 class Should
