@@ -166,14 +166,7 @@ module Motion; module Project;
 
       # Resolve file dependencies.
       if config.detect_dependencies == true
-        deps = Dependency.new(config.files - config.exclude_from_detect_dependencies, config.dependencies)
-        deps.cache_path = File.join(objs_build_dir, "dependencies.rb")
-
-        config.dependencies = deps.run
-        unless deps.updated?
-          config.ordered_build_files = deps.ordered_build_files
-        end
-        deps.save_cache(config.ordered_build_files)
+        config.dependencies = Dependency.new(config.files - config.exclude_from_detect_dependencies, config.dependencies).run
       end
 
       parallel = ParallelBuilder.new(objs_build_dir, build_file)
@@ -461,7 +454,11 @@ EOS
         if reserved_app_bundle_files.include?(res)
           App.fail "Cannot use `#{res_path}' as a resource file because it's a reserved application bundle file"
         end
-        copy_resource(res_path, File.join(app_resources_dir, res))
+        dest_path = File.join(app_resources_dir, res)
+        modified = copy_resource(res_path, dest_path)
+        if modified && should_compile_to_binary_plist?(res_path)
+          compile_resource_to_binary_plist(dest_path)
+        end
       end
 
       # Optional support for #eval (OSX-only).
@@ -518,11 +515,23 @@ EOS
       end
     end
 
+    def should_compile_to_binary_plist?(res_path)
+      File.extname(res_path) == '.strings'
+    end
+
+    def compile_resource_to_binary_plist(path)
+      App.info 'Compile', path
+      sh "/usr/bin/plutil -convert binary1 \"#{path}\""
+    end
+
     def copy_resource(res_path, dest_path)
       if !File.exist?(dest_path) or File.mtime(res_path) > File.mtime(dest_path)
         FileUtils.mkdir_p(File.dirname(dest_path))
         App.info 'Copy', res_path
         FileUtils.cp_r(res_path, dest_path)
+        true
+      else
+        false
       end
     end
 
@@ -616,7 +625,6 @@ EOS
       require 'ripper'
     end
 
-    attr_accessor :cache_path
     @file_paths = []
 
     def initialize(paths, dependencies)
@@ -671,47 +679,7 @@ EOS
         end
       end
 
-      @dependencies = dependency
       return dependency
-    end
-
-    def updated?
-      return true unless File.exist?(@cache_path)
-
-      begin
-        require @cache_path
-        if @dependencies != cached_dependencies
-          return true
-        end
-      rescue
-      end
-
-      false
-    end
-
-    def ordered_build_files
-      return nil unless File.exist?(@cache_path)
-
-      begin
-        require @cache_path
-        cached_ordered_build_files
-      rescue
-        nil
-      end
-    end
-
-    def save_cache(ordered_build_files)
-      begin
-        File.open(@cache_path, 'w') { |io|
-          methods =
-          "module Motion; module Project; class Dependency;\n" +
-          "def cached_dependencies; " + @dependencies.inspect + "; end\n" +
-          "def cached_ordered_build_files; " + ordered_build_files.inspect + "; end\n" +
-          "end; end; end"
-          io.write(methods)
-        }
-      rescue
-      end
     end
 
     class Constant < Ripper::SexpBuilder
