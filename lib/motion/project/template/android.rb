@@ -163,8 +163,8 @@ task :build do
   ruby_objs = app_objs = parallel.objects
   spec_objs = []
   if App.config.spec_mode
-    app_objs = objs[0...App.config.ordered_build_files.size]
-    spec_objs = objs[-(App.config.spec_files.size)..-1]
+    app_objs = ruby_objs[0...App.config.ordered_build_files.size]
+    spec_objs = ruby_objs[-(App.config.spec_files.size)..-1]
   end
 
   FileUtils.touch(objs_build_dir) if ruby_objs_changed
@@ -392,7 +392,6 @@ EOS
   end
 
   # Compile java files.
-  classes_changed = false
   vendored_jars = App.config.vendored_projects.map { |x| x[:jar] }
   vendored_jars += [File.join(App.config.versioned_datadir, 'rubymotion.jar')]
   classes_dir = File.join(app_build_dir, 'classes')
