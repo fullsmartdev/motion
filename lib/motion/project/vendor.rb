@@ -89,11 +89,6 @@ module Motion; module Project;
           end
         end
       end
-      Dir.chdir(@path) do
-        if File.exist?(bridgesupport_build_path)
-          FileUtils.rm bridgesupport_build_path
-        end
-      end
     end
 
     def build_static(platform)
@@ -256,9 +251,9 @@ EOS
     # the new file to that same location. Otherwise fall back to the
     # platform-specific build dir.
     def bridgesupport_build_path
-      bs_file = File.basename(Dir.pwd) + '.bridgesupport'
+      bs_file = File.basename(@path) + '.bridgesupport'
       unless File.exist?(bs_file)
-        bs_file = File.join(Builder.common_build_dir, File.expand_path(Dir.pwd), bs_file)
+        bs_file = File.join(Builder.common_build_dir, File.expand_path(@path) + '.bridgesupport')
       end
       bs_file
     end
