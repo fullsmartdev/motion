@@ -245,7 +245,7 @@ module Motion; module Project;
     def frameworks_stubs_objects(platform)
       stubs = []
       (frameworks_dependencies + weak_frameworks).uniq.each do |framework|
-        stubs_obj = File.join(datadir, platform, "#{framework}_stubs.o")
+        stubs_obj = File.join(datadir(sdk_version), platform, "#{framework}_stubs.o")
         stubs << stubs_obj if File.exist?(stubs_obj)
       end
       stubs
@@ -257,9 +257,12 @@ module Motion; module Project;
         deps = ['RubyMotion'] + (frameworks_dependencies + weak_frameworks).uniq
         deps << 'UIAutomation' if spec_mode
         deps.each do |framework|
-          bs_path = File.join(datadir(sdk_version), 'BridgeSupport', framework + '.bridgesupport')
-          if File.exist?(bs_path)
-            bs_files << bs_path
+          supported_versions.each do |ver|
+            next if Util::Version.new(ver) < Util::Version.new(deployment_target) || Util::Version.new(sdk_version) < Util::Version.new(ver)
+            bs_path = File.join(datadir(ver), 'BridgeSupport', framework + '.bridgesupport')
+            if File.exist?(bs_path)
+              bs_files << bs_path
+            end
           end
         end
         bs_files
