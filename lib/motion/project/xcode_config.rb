@@ -56,7 +56,7 @@ module Motion; module Project;
 
     def xcode_dir=(xcode_dir)
       @xcode_version = nil
-      @xcode_dir = xcode_dir
+      @xcode_dir = unescape_path(File.path(xcode_dir))
     end
 
     def xcode_dir
