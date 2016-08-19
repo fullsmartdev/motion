@@ -19,7 +19,7 @@ module Bacon
     raise NameError, "no such context: #{name.inspect}"
   }
 
-  RestrictName    = ENV['filter'] ? Regexp.new(ENV['filter']) : //  unless defined? RestrictName
+  RestrictName    = //  unless defined? RestrictName
   RestrictContext = //  unless defined? RestrictContext
 
   Backtraces = true  unless defined? Backtraces
@@ -472,7 +472,7 @@ module Bacon
           }
           ErrorLog << "\n"
         else
-          if defined?(NSException)
+          unless Platform.android?
             # Pure NSException.
             ErrorLog << "#{e.name}: #{e.reason}\n"
           else
